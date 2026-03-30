@@ -20,11 +20,10 @@ jobs:
           node-version: '18'
       
       - name: Install Newman
-        run: npm install -g newman
+        run: npm install -g newman newman-reporter-htmlextra
       
-      - name: Generate HTML Report
-        if: always()
-        run: npm install -g newman-reporter-htmlextra && newman run "Restful Booker.postman_collection.json" --reporters cli,htmlextra --reporter-htmlextra-export postman-test-report.html
+      - name: Run Postman Collection and Generate Reports
+        run: newman run "Restful Booker.postman_collection.json" --reporters cli,json,htmlextra --reporter-json-export newman-report.json --reporter-htmlextra-export postman-test-report.html
         continue-on-error: true
       
       - name: Generate Test Summary
