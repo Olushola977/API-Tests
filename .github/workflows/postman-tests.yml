@@ -1,0 +1,39 @@
+name: Postman API Tests
+
+on:
+  schedule:
+    # Run 3 times daily: at 00:00, 08:00, and 16:00 UTC
+    - cron: '0 0,8,16 * * *'
+  workflow_dispatch:
+
+jobs:
+  postman-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install Newman
+        run: npm install -g newman
+      
+      - name: Run Postman Collection
+        run: newman run "Restful Booker.postman_collection.json" --reporters cli,json
+        continue-on-error: true
+      
+      - name: Generate HTML Report
+        if: always()
+        run: npm install -g newman-reporter-html && newman run "Restful Booker.postman_collection.json" --reporters cli,html --reporter-html-export=postman-test-report.html
+        continue-on-error: true
+      
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postman-test-results
+          path: postman-test-report.html
