@@ -35,15 +35,14 @@ jobs:
         if: always()
         run: |
           if [ -f qa-summary.txt ]; then
-            SUMMARY=$(cat qa-summary.txt)
-            SUMMARY="${SUMMARY//$'\n'/'\\n'}"
+            SUMMARY=$(cat qa-summary.txt | jq -Rs .)
             curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
               -H 'Content-Type: application/json' \
-              -d "{\"text\":\"$SUMMARY\"}"
+              -d "{\"blocks\":[{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":$SUMMARY}}]}"
           else
             curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
               -H 'Content-Type: application/json' \
-              -d '{"text":"Test Summary: No summary file generated"}'
+              -d '{"blocks":[{"type":"section","text":{"type":"mrkdwn","text":"Test Summary: No summary file generated"}}]}'
           fi
         shell: bash
         continue-on-error: true
