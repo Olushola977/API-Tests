@@ -28,7 +28,7 @@ jobs:
       
       - name: Generate HTML Report
         if: always()
-        run: npm install -g newman-reporter-html && newman run "Restful Booker.postman_collection.json" --reporters cli,html --reporter-html-export=postman-test-report.html
+        run: npm install -g newman-reporter-htmlextra && newman run "Restful Booker.postman_collection.json" --reporters cli,htmlextra --reporter-html-export=postman-test-report.html
         continue-on-error: true
       
       - name: Upload Test Report
