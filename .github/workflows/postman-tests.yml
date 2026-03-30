@@ -23,12 +23,37 @@ jobs:
         run: npm install -g newman
       
       - name: Run Postman Collection
-        run: newman run "Restful Booker.postman_collection.json" --reporters cli,json
+        run: newman run "Restful Booker.postman_collection.json" --reporters cli,json --reporter-json-export newman-report.json
         continue-on-error: true
       
       - name: Generate HTML Report
         if: always()
-        run: npm install -g newman-reporter-htmlextra && newman run "Restful Booker.postman_collection.json" --reporters cli,htmlextra --reporter-html-export=postman-test-report.html
+        run: npm install -g newman-reporter-htmlextra && newman run "Restful Booker.postman_collection.json" --reporters cli,htmlextra --reporter-htmlextra-export postman-test-report.html
+        continue-on-error: true
+      
+      - name: Generate Test Summary
+        if: always()
+        run: node generate-summary.js
+        continue-on-error: true
+      
+      - name: Read Summary for Slack
+        if: always()
+        id: summary
+        run: echo "SUMMARY<<EOF" >> $GITHUB_ENV && cat qa-summary.txt >> $GITHUB_ENV && echo "EOF" >> $GITHUB_ENV
+        shell: bash
+        continue-on-error: true
+      
+      - name: Send Summary to Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "${{ env.SUMMARY }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         continue-on-error: true
       
       - name: Upload Test Report
@@ -36,4 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: postman-test-results
-          path: postman-test-report.html
+          path: |
+            postman-test-report.html
+            qa-summary.txt
+            newman-report.json
